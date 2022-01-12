@@ -1,0 +1,67 @@
+﻿
+@{
+    ViewBag.Title = "UpdateUserPrinciple";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div style="width:200px; padding:50px 0px;"><img src="~/images/ds-logo-gray.svg" /></div>
+<div class="container">
+    <form action="#">
+        <div class="title">Update UserPrinciple</div>
+        <div class="input-box underline">
+            <input type="text" name="txtObjectId" id="txtObjectId" placeholder="ObjectId" required>
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="txtEmailId" id="txtEmailId" placeholder="New EmailId(UPN)" required>
+            <div class="underline"></div>
+        </div>
+        <div class="input-box button">
+            <input type="button" id="btnSubmit" name="btnSubmit" value="Continue" class="btn-1">
+        </div>
+    </form>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/sweetalert2/6.6.2/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/sweetalert2/6.6.2/sweetalert2.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btnSubmit').click(function () {
+            var ObjectId = $.trim($("[id*=txtObjectId]").val());
+            var emailid = $.trim($("[id*=txtEmailId]").val());
+            $.ajax({
+                url: '../Home/SaveUpdateUuserPrinciple',
+                type: "POST",
+                data: { ObjectId: ObjectId, emailid: emailid },
+                async: false,
+                dataType: "json",
+                success: function (result) {
+                   
+                    if (result == 1) {
+                        swal({
+                            icon: "success",
+                            text: "Updated UPN Sucessfully ..!",
+                            type: "success",
+                            buttons: false
+                        });
+                        window.setTimeout(function () { window.location = "../Home/UpdateUserPrinciple"; }, 4000);
+                    }
+                    else
+                    {
+                        swal({
+                            icon: "warning",
+                            text: "Something Wrong ..!", 
+                            type: "success",
+                            buttons: false
+                        });
+                        window.setTimeout(function () { window.location = "../Home/UpdateUserPrinciple"; }, 4000);
+                    }
+
+                },
+                error: function (err) {
+                    alert(err.statusText);
+                }
+            });
+        });
+    });
+</script>
