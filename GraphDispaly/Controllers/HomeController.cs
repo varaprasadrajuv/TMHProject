@@ -32,7 +32,7 @@ namespace GraphDispaly.Controllers
         [HttpPost]
         public ActionResult SaveUpdateUuserPrinciple(string ObjectId,string emailid)
         {
-            int? sResult = null;
+           string sResult = null;
             UserDetails ud = new UserDetails();
             using (var client = new HttpClient())
             {
@@ -46,7 +46,7 @@ namespace GraphDispaly.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    sResult = response.Content.ReadAsAsync<int>().Result;
+                    sResult = response.Content.ReadAsAsync<string>().Result;
 
                 }
             }

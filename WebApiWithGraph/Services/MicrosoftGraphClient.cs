@@ -6,6 +6,8 @@ using System;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Net.Http;
 
 namespace WebApiWithGraph.Services
 {
@@ -21,7 +23,7 @@ namespace WebApiWithGraph.Services
         private static string graphResource;
         private static string graphAPIEndpoint;
         private static string authority;
-        
+        //public static PublicClientApplication IdentityClientApp = new PublicClientApplication(clientId);
         static MicrosoftGraphClient()
         {
             configuration = new ConfigurationBuilder()
@@ -75,5 +77,6 @@ namespace WebApiWithGraph.Services
 
             return delegateAuthProvider;
         }
+       
     }
 }

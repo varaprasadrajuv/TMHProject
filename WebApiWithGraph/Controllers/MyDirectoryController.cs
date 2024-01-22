@@ -24,7 +24,7 @@ namespace WebApiWithGraph.Controllers
         }
 
         [HttpPost("UpdateUsers")]     
-        public async Task<int> UpdateUsers(UserDetails ud)
+        public async Task<string> UpdateUsers(UserDetails ud)
         {
             Users users = new Users();
            // HttpResponseMessage response = null;
@@ -45,109 +45,112 @@ namespace WebApiWithGraph.Controllers
                     new ObjectIdentity
                     {
                         SignInType = "emailAddress",
-                        Issuer = "varasukanyaorg.onmicrosoft.com",
+                        Issuer = "varaneworg.onmicrosoft.com",
                         IssuerAssignedId = ud.emailid
                     }
                    }
 
                 };
-
+                //var user = new Microsoft.Graph.User
+                //{
+                //    UserPrincipalName=ud.emailid
+                //};
                 await client.Users[ud.ObjectId].Request().UpdateAsync(user);
-                return 1;
+                return "1";
 
             }
             catch (ServiceException ex)
             {
-                return 0;
+                return ex.Message;
             }
             //return response;
         }
-        //[HttpGet("users/{id}", Name = RouteNames.UserById)]
-        //public async Task<IActionResult> GetUser(string id)
-        //{
-        //    Models.User objUser = new Models.User();
-        //    try
-        //    {
-        //        if(string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id))
-        //        {
-        //            return BadRequest();
-        //        }
+        [HttpGet("users/{UserPrincipalName}")]
+        public async Task<IActionResult> GetUser(string UserPrincipalName)
+        {
+            Models.User objUser = new Models.User();
+            try
+            {
+                // Initialize the GraphServiceClient.
+                GraphServiceClient client = await MicrosoftGraphClient.GetGraphServiceClient();
+
+                // Load user profile.
+                var user = await client.Users[UserPrincipalName]
+                                     .Request()
+                                     .Select("displayName,givenName,postalCode,identities")
+                                     .GetAsync();
+
+                // Copy Microsoft-Graph User to DTO User
+               objUser = CopyHandler.UserProperty(user);
+
+                return Ok(objUser);
+            }
+            catch (ServiceException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    return BadRequest();
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+        }
 
 
-        //        // Initialize the GraphServiceClient.
-        //        GraphServiceClient client = await MicrosoftGraphClient.GetGraphServiceClient();
+        [HttpGet("users/")]
+        public async Task<IActionResult> GetUsers()
+        {
+            Users users = new Users();
+            try
+            {
+                users.resources = new List<Models.User>();
 
-        //        // Load user profile.
-        //        var user = await client.Users[id].Request().GetAsync();
+                // Initialize the GraphServiceClient.
+                GraphServiceClient client = await MicrosoftGraphClient.GetGraphServiceClient();
 
-        //        // Copy Microsoft-Graph User to DTO User
-        //        objUser = CopyHandler.UserProperty(user);
+                // Load users profiles.
+                var userList = await client.Users
+                    .Request()
+                    .Select(e => new
+                    {
+                        e.DisplayName,                       
+                        e.Id,
+                        e.Identities,
+                        e.GivenName,
+                        e.Surname,
+                        e.UserPrincipalName,
+                        e.Mail,
+                        e.MailNickname,
+                        e.Manager,
+                        e.UserType
+                    })
+                    .GetAsync();
 
-        //        return Ok(objUser);
-        //    }
-        //    catch (ServiceException ex)
-        //    {
-        //        if (ex.StatusCode == HttpStatusCode.BadRequest)
-        //        {
-        //            return BadRequest();
-        //        }
-        //        else
-        //        {
-        //            return NotFound();
-        //        }
-        //    }
-        //}
+                // Copy Microsoft User to DTO User
+                foreach (var user in userList)
+                {
+                    var objUser = CopyHandler.UserProperty(user);
+                    users.resources.Add(objUser);
 
+                }
+                //users.totalResults = users.resources.Count;
 
-        //[HttpGet("users/")]
-        //public async Task<IActionResult> GetUsers()
-        //{
-        //    Users users = new Users();
-        //    try
-        //    {
-        //        users.resources = new List<Models.User>();
-
-        //        // Initialize the GraphServiceClient.
-        //        GraphServiceClient client = await MicrosoftGraphClient.GetGraphServiceClient();
-
-        //        // Load users profiles.
-        //        var userList = await client.Users
-        //            .Request()                    
-        //            .Select(e => new
-        //            {
-        //                e.DisplayName,
-        //                e.Id,
-        //                e.Identities,
-        //                e.GivenName,
-        //                e.Surname,
-        //                e.UserPrincipalName
-
-        //            })
-        //            .GetAsync();
-
-        //        // Copy Microsoft User to DTO User
-        //        foreach (var user in userList)
-        //        {
-        //            var objUser = CopyHandler.UserProperty(user);
-        //          users.resources.Add(objUser);
-
-        //        }
-        //       //users.totalResults = users.resources.Count;
-
-        //        return Ok(users);
-        //    }
-        //    catch (ServiceException ex)
-        //    {
-        //        if (ex.StatusCode == HttpStatusCode.BadRequest)
-        //        {
-        //            return BadRequest();
-        //        }
-        //        else
-        //        {
-        //            return NotFound();
-        //        }
-        //    }
-        //}
+                return Ok(users);
+            }
+            catch (ServiceException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    return BadRequest();
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+        }
         //[System.Web.Http.HttpPost]
         //[EnableCors("AllowOrigin")]
         //[System.Web.Http.Route("UpdateUsers/{ObjectId}/{emailid}")]       
